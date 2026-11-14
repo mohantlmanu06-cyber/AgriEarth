@@ -3,6 +3,10 @@ import { User } from '../types';
 import { apiService } from '../services/api';
 import { supabase, mapSupabaseUser, DEMO_USERS } from '../services/supabase';
 
+const API_SERVER_URL = import.meta.env.VITE_API_URL
+  ? String(import.meta.env.VITE_API_URL).replace(/\/+$/, '')
+  : '';
+
 interface AuthContextType {
   user: User | null;
   token: string | null;
@@ -130,7 +134,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // 2. Django Backend fallback attempt
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch(`${API_SERVER_URL}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: cleanEmail, password }),
@@ -178,7 +182,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     try {
       // 1. Submit to Django API (which provisions Django DB Farm & Fields AND syncs to Supabase Admin with email_confirm: true)
-      const res = await fetch('/api/auth/register', {
+      const res = await fetch(`${API_SERVER_URL}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

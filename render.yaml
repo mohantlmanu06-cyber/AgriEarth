@@ -1,0 +1,57 @@
+services:
+  # -------------------------------------------------------------
+  # 1. DJANGO BACKEND API (WEB SERVICE)
+  # -------------------------------------------------------------
+  - type: web
+    name: agriearth-backend
+    runtime: python
+    region: oregon
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt && python manage.py migrate
+    startCommand: gunicorn fieldshift_core.wsgi:application
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: SUPABASE_URL
+        value: https://trqjqopeguwphzmmowwz.supabase.co
+      - key: SUPABASE_PUBLISHABLE_KEY
+        value: sb_publishable_QNigGY20RTVajhFY5HSPEA_ZCyToUjB
+      - key: SUPABASE_JWKS_URL
+        value: https://trqjqopeguwphzmmowwz.supabase.co/auth/v1/.well-known/jwks.json
+      - key: SUPABASE_SECRET_KEY
+        sync: false # Set securely in Render dashboard
+
+  # -------------------------------------------------------------
+  # 2. REACT + VITE FRONTEND (STATIC SITE)
+  # -------------------------------------------------------------
+  - type: web
+    name: agriearth-frontend
+    runtime: static
+    region: oregon
+    plan: free
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_SUPABASE_URL
+        value: https://trqjqopeguwphzmmowwz.supabase.co
+      - key: VITE_SUPABASE_PUBLISHABLE_KEY
+        value: sb_publishable_QNigGY20RTVajhFY5HSPEA_ZCyToUjB
+      - key: VITE_SUPABASE_ANON_KEY
+        value: sb_publishable_QNigGY20RTVajhFY5HSPEA_ZCyToUjB
+      - key: VITE_SUPABASE_JWKS_URL
+        value: https://trqjqopeguwphzmmowwz.supabase.co/auth/v1/.well-known/jwks.json
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: agriearth-backend
+          property: host
